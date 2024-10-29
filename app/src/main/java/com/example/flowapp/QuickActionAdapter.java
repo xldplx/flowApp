@@ -1,5 +1,7 @@
 package com.example.flowapp;
 
+import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,9 +14,11 @@ import java.util.List;
 public class QuickActionAdapter extends RecyclerView.Adapter<QuickActionAdapter.ViewHolder> {
 
     private List<QuickAction> quickActions;
+    private Context context;
 
-    public QuickActionAdapter(List<QuickAction> quickActions) {
+    public QuickActionAdapter(List<QuickAction> quickActions, Context context) {
         this.quickActions = quickActions;
+        this.context = context;
     }
 
     @NonNull
@@ -24,12 +28,29 @@ public class QuickActionAdapter extends RecyclerView.Adapter<QuickActionAdapter.
         return new ViewHolder(view);
     }
 
-    @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        QuickAction action = quickActions.get(position);
-        holder.icon.setImageResource(action.getIconResId());
-        holder.title.setText(action.getTitle());
-    }
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            QuickAction action = quickActions.get(position);
+            holder.icon.setImageResource(action.getIconResId());
+            holder.title.setText(action.getTitle());
+
+            // Set click listener for the item
+            holder.itemView.setOnClickListener(v -> {
+                if (action.getTitle().equals("Scan")) {
+                    Intent intent = new Intent(context, QRScannerActivity.class);
+                    context.startActivity(intent);
+                } else if (action.getTitle().equals("Wallet")) {
+                    if (context instanceof MainActivity) {
+                        ((MainActivity) context).navigateToFragment(new WalletFragment());
+                    }
+                } else if (action.getTitle().equals("Pay")) {
+                    if (context instanceof MainActivity) {
+                        ((MainActivity) context).navigateToFragment(new PayFragment());
+                    }
+                }
+            });
+
+        }
 
     @Override
     public int getItemCount() {

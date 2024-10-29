@@ -62,9 +62,16 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void navigateToFragment(Fragment fragment) {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, fragment) // Ensure this ID matches your layout
+                .addToBackStack(null) // Optional: adds the transaction to the back stack
+                .commit();
+    }
+
     private void loadFragment(Fragment fragment) {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.frame_container, fragment);
+        transaction.replace(R.id.fragment_container, fragment);
         transaction.addToBackStack(null);
         transaction.commit();
     }

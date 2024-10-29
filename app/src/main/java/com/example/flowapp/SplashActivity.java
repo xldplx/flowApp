@@ -14,9 +14,9 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        // Use a Handler to delay the transition to the main activity
+        // Use a Handler to delay the transition to the PinLoginActivity
         new Handler().postDelayed(() -> {
-            Intent mainIntent = new Intent(SplashActivity.this, MainActivity.class); // Replace with your main activity
+            Intent mainIntent = new Intent(SplashActivity.this, PinLoginActivity.class); // Start PinLoginActivity
             startActivity(mainIntent);
             finish(); // Close the splash activity
         }, SPLASH_DISPLAY_LENGTH);

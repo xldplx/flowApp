@@ -32,6 +32,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.biometric)
     implementation(libs.core.splashscreen)
     implementation(libs.barcode.scanning)
     implementation(libs.cameraLifecycle)

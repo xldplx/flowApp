@@ -1,16 +1,21 @@
 package com.example.flowapp;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Size;
 import android.widget.Button;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.core.AspectRatio;
+import androidx.camera.core.CameraControl;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ExperimentalGetImage;
 import androidx.camera.core.ImageAnalysis;
@@ -22,42 +27,95 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import android.Manifest;
+import android.content.Context;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraManager;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresPermission;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.core.CameraSelector;
+import androidx.camera.core.CameraControl;
+import androidx.camera.core.ImageAnalysis;
+import androidx.camera.core.Preview;
+import androidx.camera.lifecycle.ProcessCameraProvider;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.mlkit.vision.barcode.Barcode;
+import com.google.mlkit.vision.barcode.BarcodeScanner;
+import com.google.mlkit.vision.barcode.BarcodeScanning;
+import com.google.mlkit.vision.common.InputImage;
+
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.mlkit.vision.barcode.Barcode;
 import com.google.mlkit.vision.barcode.BarcodeScanner;
 import com.google.mlkit.vision.barcode.BarcodeScanning;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.common.util.concurrent.ListenableFuture;
+import android.content.Context;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraManager;
 
 import java.io.File;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class QRScannerActivity extends AppCompatActivity {
-
+    private static final String TAG = "QRScannerActivity";
     private PreviewView previewView;
+    private CameraManager cameraManager;
+    private String cameraId;
     private Button btnCancelScan;
     private Button btnFlipCamera;
     private Button btnGallery;
+    private Button btnFlash;
     private BarcodeScanner scanner;
     private ImageCapture imageCapture; // Declare imageCapture as a class member
     private boolean isUsingBackCamera = true;
     private boolean isFlashOn = false;
+    private CameraControl cameraControl;
+
+    private static final int CAMERA_PERMISSION_REQUEST_CODE = 100;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_qr_scanner);
 
+        // Initialize CameraManager
+        cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        try {
+            cameraId = cameraManager.getCameraIdList()[0]; // Get the first camera ID (usually the back camera)
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+
         scanner = BarcodeScanning.getClient();
         previewView = findViewById(R.id.preview_view);
         btnCancelScan = findViewById(R.id.btn_cancel_scan);
         btnFlipCamera = findViewById(R.id.btn_flip_camera);
         btnGallery = findViewById(R.id.btn_gallery);
-        Button btnFlash = findViewById(R.id.btn_flash);
+        btnFlash = findViewById(R.id.btn_flash);
+
         btnFlash.setOnClickListener(v -> toggleFlash());
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 1);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 100);
         } else {
-            initializeCamera();
+            startCamera();
         }
 
         btnCancelScan.setOnClickListener(v -> finish());
@@ -74,31 +132,66 @@ public class QRScannerActivity extends AppCompatActivity {
         });
     }
 
+    private void startCamera() {
+        ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(this);
+        cameraProviderFuture.addListener(() -> {
+            try {
+                ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
+
+                Preview preview = new Preview.Builder().build();
+                CameraSelector cameraSelector = new CameraSelector.Builder()
+                        .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                        .build();
+
+                ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
+                        .setTargetAspectRatio(AspectRatio.RATIO_4_3)
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                        .build();
+
+                imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), new BarcodeImageAnalyzer());
+
+                // Bind the camera use cases
+                cameraProvider.unbindAll();
+                cameraControl = cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalysis)
+                        .getCameraControl();
+
+                PreviewView previewView = findViewById(R.id.preview_view);
+                preview.setSurfaceProvider(previewView.getSurfaceProvider());
+            } catch (ExecutionException | InterruptedException e) {
+                Log.e(TAG, "Error starting camera", e);
+            }
+        }, ContextCompat.getMainExecutor(this));
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 1 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            initializeCamera();
-        } else {
-            Toast.makeText(this, "Camera permission is required to scan QR codes.", Toast.LENGTH_SHORT).show();
-            finish();
+        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted
+            } else {
+                Toast.makeText(this, "Camera permission is required to use the flashlight.", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
+    private boolean isFlashAvailable() {
+        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
+    }
+
     private void toggleFlash() {
-        isFlashOn = !isFlashOn; // Toggle flash state
-        if (imageCapture != null) { // Check if imageCapture is initialized
+        if (isFlashAvailable()) {
             if (isFlashOn) {
-                // Enable flash
-                Toast.makeText(this, "Flash On", Toast.LENGTH_SHORT).show();
-                imageCapture.setFlashMode(ImageCapture.FLASH_MODE_ON);
+                cameraControl.enableTorch(false); // Turn off the flashlight
+                isFlashOn = false ;
+                Toast.makeText(this, "Flashlight Off", Toast.LENGTH_SHORT).show();
             } else {
-                // Disable flash
-                Toast.makeText(this, "Flash Off", Toast.LENGTH_SHORT).show();
-                imageCapture.setFlashMode(ImageCapture.FLASH_MODE_OFF);
+                cameraControl.enableTorch(true); // Turn on the flashlight
+                isFlashOn = true;
+                Toast.makeText(this, "Flashlight On", Toast.LENGTH_SHORT).show();
             }
         } else {
-            Toast.makeText(this, "ImageCapture is not initialized", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Flashlight not available on this device.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -133,12 +226,17 @@ public class QRScannerActivity extends AppCompatActivity {
                         .setImageQueueDepth(1)
                         .build();
 
-                imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), new QRCodeAnalyzer());
+                imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), new BarcodeImageAnalyzer());
 
                 cameraProvider.unbindAll();
                 cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalysis, imageCapture);
 
                 preview.setSurfaceProvider(previewView.getSurfaceProvider()); // Use PreviewView
+
+                // Check if flash is available
+                if (!isFlashAvailable()) {
+                    Toast.makeText(this, "Flash is not available on this device.", Toast.LENGTH_SHORT).show();
+                }
 
             } catch (Exception e) {
                 Toast.makeText(this, "Error initializing camera: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -174,37 +272,40 @@ public class QRScannerActivity extends AppCompatActivity {
         }
     }
 
-    private class QRCodeAnalyzer implements ImageAnalysis.Analyzer {
-        @OptIn(markerClass = ExperimentalGetImage.class)
+    private class BarcodeImageAnalyzer implements ImageAnalysis.Analyzer {
+        private final BarcodeScanner scanner = BarcodeScanning.getClient();
+
         @Override
         public void analyze(@NonNull ImageProxy imageProxy) {
-            try {
-                // Convert ImageProxy to InputImage
-                InputImage inputImage = InputImage.fromMediaImage(imageProxy.getImage(), imageProxy.getImageInfo().getRotationDegrees());
-
-                // Process the image with the BarcodeScanner
+            @SuppressLint("UnsafeOptInUsageError")
+            Image image = imageProxy.getImage();
+            if (image != null) {
+                InputImage inputImage = InputImage.fromMediaImage(image, imageProxy.getImageInfo().getRotationDegrees());
                 scanner.process(inputImage)
-                        .addOnSuccessListener(barcodes -> {
-                            for (Barcode barcode : barcodes) {
-                                String scannedData = barcode.getRawValue(); // Get the scanned QR code data
-                                Intent intent = new Intent();
-                                intent.putExtra("scannedData", scannedData); // Pass the scanned data back
-                                setResult(RESULT_OK, intent); // Set the result
-                                finish(); // Finish the QRScannerActivity
-                                break; // Exit after the first successful scan
+                        .addOnSuccessListener(new OnSuccessListener<List<Barcode>>() {
+                            @Override
+                            public void onSuccess(List<Barcode> barcodes) {
+                                for (Barcode barcode : barcodes) {
+                                    // Process the barcode data
+                                    Log.d(TAG, "Barcode detected: " + barcode.getRawValue());
+                                }
                             }
                         })
-                        .addOnFailureListener(e -> {
-                            // Handle failure
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Log.e(TAG, "Barcode scanning failed: " + e.getMessage());
+                            }
                         })
-                        .addOnCompleteListener(task -> {
-                            imageProxy.close(); // Close the image proxy
+                        .addOnCompleteListener(new OnCompleteListener<List<Barcode>>() {
+                            @Override
+                            public void onComplete(@NonNull Task<List<Barcode>> task) {
+                                imageProxy.close();
+                            }
                         });
-            } catch (Exception e) {
-                // Handle any exceptions
-                imageProxy.close(); // Ensure the image proxy is closed in case of error
             }
         }
     }
+
 
 }
