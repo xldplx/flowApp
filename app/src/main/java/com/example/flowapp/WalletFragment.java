@@ -1,7 +1,6 @@
 package com.example.flowapp;
 
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,8 +40,7 @@ public class WalletFragment extends Fragment {
     }
 
     private void displayUserBalance() {
-        // Assuming you have a method to get the current user ID or user PIN
-        int userId = 1; // Replace with actual user ID retrieval logic
+        int userId = UserSession.getInstance(getActivity()).getUserId(); // Retrieve user ID from UserSession
 
         // Fetch the user's balance from the database
         double balance = getUserBalance(userId);
@@ -51,22 +49,7 @@ public class WalletFragment extends Fragment {
     }
 
     private double getUserBalance(int userId) {
-        // Logic to retrieve user_money from the database
-        double balance = 0.0;
-        SQLiteDatabase db = databaseHelper.getReadableDatabase();
-        Cursor cursor = db.query(DatabaseHelper.TABLE_USERS,
-                new String[]{DatabaseHelper.COLUMN_USER_MONEY},
-                DatabaseHelper.COLUMN_USER_ID + "=?",
-                new String[]{String.valueOf(userId)},
-                null, null, null);
-
-        if (cursor != null) {
-            if (cursor.moveToFirst()) {
-                balance = cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_USER_MONEY));
-            }
-            cursor.close();
-        }
-        return balance;
+        return databaseHelper.getUserBalance(userId); // Use the existing method in DatabaseHelper
     }
 
     private String formatToRupiah(double amount) {

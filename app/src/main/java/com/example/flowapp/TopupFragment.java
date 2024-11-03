@@ -23,6 +23,7 @@ public class TopupFragment extends Fragment {
 
     private EditText etTopup;
     private DatabaseHelper databaseHelper;
+    private StringBuilder currentAmnt;
 
     @Nullable
     @Override
@@ -31,6 +32,7 @@ public class TopupFragment extends Fragment {
 
         etTopup = view.findViewById(R.id.et_topup);
         databaseHelper = new DatabaseHelper(getActivity());
+        currentAmnt = new StringBuilder();
 
         setupKeypad(view);
         setupTopupButton(view);
@@ -120,7 +122,7 @@ public class TopupFragment extends Fragment {
         String amountStr = etTopup.getText().toString();
         if (!amountStr.isEmpty()) {
             double amount = Double.parseDouble(amountStr.replace(",", ""));
-            int userId = 1; // Replace with actual user ID retrieval logic
+            int userId = UserSession.getInstance(getActivity()).getUserId(); // Get the current user ID
             updateUserMoney(userId, amount);
 
             // Navigate back to HomeFragment
@@ -130,8 +132,16 @@ public class TopupFragment extends Fragment {
         }
     }
 
+    private void handleBackspaceClick() {
+        if (currentAmnt.length() > 0) {
+            currentAmnt.setLength(currentAmnt.length() - 1);
+            etTopup.setText(currentAmnt.toString()); // Update EditText after backspace
+        }
+    }
+
     private void updateUserMoney(int userId, double amount) {
         SQLiteDatabase db = databaseHelper.getWritableDatabase();
+        Log.d("TopupFragment", "Updating user ID: " + userId + " with amount: " + amount);
         db.execSQL("UPDATE " + DatabaseHelper.TABLE_USERS + " SET " +
                 DatabaseHelper.COLUMN_USER_MONEY + " = " +
                 DatabaseHelper.COLUMN_USER_MONEY + " + ? WHERE " +

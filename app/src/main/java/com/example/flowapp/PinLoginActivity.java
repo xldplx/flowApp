@@ -51,7 +51,6 @@ public class PinLoginActivity extends AppCompatActivity implements View.OnClickL
     private void setupActionButtons() {
         findViewById(R.id.btn_fingerprint).setOnClickListener(this);
         findViewById(R.id.btn_backspace).setOnClickListener(this);
-        findViewById(R.id.btn_use_password).setOnClickListener(this);
         findViewById(R.id.btn_register).setOnClickListener(v -> {
             Intent intent = new Intent(PinLoginActivity.this, RegisterActivity.class);
             startActivity(intent);
@@ -90,7 +89,11 @@ public class PinLoginActivity extends AppCompatActivity implements View.OnClickL
         String pin = currentPin.toString();
         DatabaseHelper databaseHelper = new DatabaseHelper(this);
         if (databaseHelper.checkUser (pin)) {
-            // PIN is valid, proceed to MainActivity
+            // PIN is valid, retrieve user ID
+            int userId = databaseHelper.getUserIdByPin(pin);
+            UserSession.getInstance(this).setUserId(userId); // Store user ID in UserSession
+
+            // Proceed to MainActivity
             Intent intent = new Intent(PinLoginActivity.this, MainActivity.class);
             startActivity(intent);
             finish(); // Close this activity
@@ -104,18 +107,24 @@ public class PinLoginActivity extends AppCompatActivity implements View.OnClickL
 
     private void handleFingerprintClick() {
         Executor executor = ContextCompat.getMainExecutor(this);
-        BiometricPrompt biometricPrompt = new BiometricPrompt(this, executor, new BiometricPrompt.AuthenticationCallback() {
+        biometricPrompt = new BiometricPrompt(this, executor, new BiometricPrompt.AuthenticationCallback() {
             @Override
             public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
                 super.onAuthenticationSucceeded(result);
-                // Authentication succeeded, proceed to MainActivity
-                Intent intent = new Intent(PinLoginActivity.this, MainActivity.class);
-                startActivity(intent);
-                finish(); // Close this activity
+                // Authentication succeeded, retrieve user ID from UserSession
+                int userId = UserSession.getInstance(PinLoginActivity.this).getUserId();
+                if (userId != -1) { // Check if user ID is valid
+                    // Proceed to MainActivity
+                    Intent intent = new Intent(PinLoginActivity.this, MainActivity.class);
+                    startActivity(intent);
+                    finish(); // Close this activity
+                } else {
+                    Toast.makeText(PinLoginActivity.this, "No user ID found. Please log in with PIN.", Toast.LENGTH_SHORT).show();
+                }
             }
 
             @Override
-            public void onAuthenticationError(int errorCode , @NonNull CharSequence errString) {
+            public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
                 super.onAuthenticationError(errorCode, errString);
                 // Authentication failed, show an error message
                 Toast.makeText(PinLoginActivity.this, "Fingerprint authentication failed: " + errString, Toast.LENGTH_SHORT).show();

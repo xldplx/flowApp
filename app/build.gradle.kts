@@ -32,6 +32,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.guava)
     implementation(libs.biometric)
     implementation(libs.core.splashscreen)
     implementation(libs.barcode.scanning)
@@ -46,6 +47,8 @@ dependencies {
     implementation(libs.camera.core)
     implementation(libs.play.services.vision)
     implementation(libs.legacy.support.v4)
+    implementation(libs.firebase.inappmessaging)
+    implementation(libs.firebase.crashlytics.buildtools)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

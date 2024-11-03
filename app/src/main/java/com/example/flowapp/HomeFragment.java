@@ -1,5 +1,6 @@
 package com.example.flowapp;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import java.text.NumberFormat;
@@ -31,8 +32,14 @@ public class HomeFragment extends Fragment {
         tvBalance = view.findViewById(R.id.balance); // Reference to the balance TextView
         databaseHelper = new DatabaseHelper(getActivity()); // Initialize your DatabaseHelper
 
-        // Fetch and display the user's balance
-        displayUserBalance();
+        // Check if the user is logged in
+        if (!UserSession.getInstance(getContext()).isLoggedIn()) {
+            // Redirect to the login screen if not logged in
+            navigateToLogin();
+        } else {
+            // Fetch and display the user's balance
+            displayUserBalance();
+        }
 
         // Set up the Top up button
         Button btnTopUp = view.findViewById(R.id.btn_top_up);
@@ -57,6 +64,12 @@ public class HomeFragment extends Fragment {
         return view;
     }
 
+    private void navigateToLogin() {
+        Intent intent = new Intent(getActivity(), PinLoginActivity.class); // Ensure you have a LoginActivity
+        startActivity(intent);
+        getActivity().finish(); // Close the current activity
+    }
+
     private void navigateToTopupFragment() {
         TopupFragment topupFragment = new TopupFragment();
         getActivity().getSupportFragmentManager()
@@ -67,26 +80,23 @@ public class HomeFragment extends Fragment {
     }
 
     private void displayUserBalance() {
-        // Assuming you have a method to get the current user ID or user PIN
-        int userId = 1; // Replace with actual user ID retrieval logic
+        // Retrieve the user ID from UserSession
+        int userId = UserSession.getInstance(getContext()).getUserId(); // Use the actual method to get user ID
 
-        // Fetch the user's balance from the database
-        double balance = getUserBalance(userId);
-        String formattedBalance = formatToRupiah(balance);
-        tvBalance.setText(formattedBalance);
+        if (userId != -1) { // Check for a valid user ID
+            // Fetch the user's balance from the database
+            double balance = getUserBalance(userId);
+            String formattedBalance = formatToRupiah(balance);
+            tvBalance.setText(formattedBalance);
+        } else {
+            // Handle case where user ID is invalid
+            tvBalance.setText("Error retrieving balance");
+        }
     }
 
     private double getUserBalance(int userId) {
-        double balance = 0.0;
-        Cursor cursor = databaseHelper.getUserBalance(userId); // Implement this method in your DatabaseHelper
-
-        if (cursor != null) {
-            if (cursor.moveToFirst()) {
-                balance = cursor.getDouble(cursor.getColumnIndex("user_money")); // Replace "user_money" with your actual column name
-            }
-            cursor.close();
-        }
-        return balance;
+        // Consider adding error handling here
+        return databaseHelper.getUserBalance(userId); // Directly call the method from DatabaseHelper
     }
 
     private String formatToRupiah(double amount) {

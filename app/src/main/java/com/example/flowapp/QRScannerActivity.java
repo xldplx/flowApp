@@ -36,7 +36,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresPermission;
 import androidx.appcompat.app.AppCompatActivity;
@@ -47,24 +46,21 @@ import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.mlkit.vision.barcode.Barcode;
 import com.google.mlkit.vision.barcode.BarcodeScanner;
 import com.google.mlkit.vision.barcode.BarcodeScanning;
 import com.google.mlkit.vision.common.InputImage;
-
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.android.gms.tasks.Task;
 import com.google.mlkit.vision.barcode.Barcode;
 import com.google.mlkit.vision.barcode.BarcodeScanner;
 import com.google.mlkit.vision.barcode.BarcodeScanning;
 import com.google.mlkit.vision.common.InputImage;
-import com.google.common.util.concurrent.ListenableFuture;
 import android.content.Context;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraManager;
@@ -157,8 +153,10 @@ public class QRScannerActivity extends AppCompatActivity {
 
                 PreviewView previewView = findViewById(R.id.preview_view);
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
-            } catch (ExecutionException | InterruptedException e) {
+            } catch (InterruptedException e) {
                 Log.e(TAG, "Error starting camera", e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
             }
         }, ContextCompat.getMainExecutor(this));
     }

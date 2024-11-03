@@ -22,6 +22,9 @@ public class PayFragment extends Fragment {
 
     private static final int QR_CODE_REQUEST = 100; // Request code for QR scanner activity
 
+    private DatabaseHelper databaseHelper;
+    private int userId; // Assume you have a way to get the current user's ID
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -32,14 +35,25 @@ public class PayFragment extends Fragment {
         btnPay = view.findViewById(R.id.btn_pay);
         btnScanQR = view.findViewById(R.id.btn_scan_qr);
 
+        databaseHelper = new DatabaseHelper(getContext());
+        userId = UserSession.getInstance(getActivity()).getUserId(); // Get the current user's ID from session// Get the current user's ID from session
+
         btnPay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String recipient = etRecipient.getText().toString();
-                String amount = etAmount.getText().toString();
-                if (!recipient.isEmpty() && !amount.isEmpty()) {
-                    // Implement payment logic here
-                    Toast.makeText(getContext(), "Payment of " + amount + " to " + recipient + " initiated", Toast.LENGTH_SHORT).show();
+                String amountStr = etAmount.getText().toString();
+
+                if (!recipient.isEmpty() && !amountStr.isEmpty()) {
+                    double amount = Double.parseDouble(amountStr);
+                    double currentBalance = databaseHelper.getUserBalance(userId);
+
+                    if (currentBalance >= amount) {
+                        // Proceed with payment
+                        processPayment(recipient, amount);
+                    } else {
+                        Toast.makeText(getContext(), "Insufficient balance", Toast.LENGTH_SHORT).show();
+                    }
                 } else {
                     Toast.makeText(getContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show();
                 }
@@ -56,6 +70,31 @@ public class PayFragment extends Fragment {
         });
 
         return view;
+    }
+
+    private void processPayment(String recipient, double amount) {
+        try {
+            // Subtract the amount from the user's balance
+            double newBalance = databaseHelper.getUserBalance(userId) - amount;
+            databaseHelper.updateUserBalance(userId, newBalance); // Update the balance in the database
+
+            // Create a new transaction record
+            String date = "2023-05-01"; // Replace with the current date in your desired format
+            String title = "Payment to " + recipient;
+            String transactionType = "payment";
+
+            // Add the transaction to the database
+            databaseHelper.addTransaction(userId, amount, date, title, transactionType);
+
+            Toast.makeText(getContext(), "Payment of " + amount + " to " + recipient + " successful", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            e.printStackTrace(); // Log the exception to Logcat
+            Toast.makeText(getContext(), "Error processing payment: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+
+        // Optionally, clear the input fields
+        etRecipient.setText("");
+        etAmount.setText("");
     }
 
     @Override
