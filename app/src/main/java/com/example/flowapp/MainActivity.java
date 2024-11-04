@@ -1,5 +1,6 @@
 package com.example.flowapp;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -52,8 +53,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // Handle pay button click
-                PayFragment payFragment = new PayFragment();
-                loadFragment(payFragment);
+                Intent intent = new Intent(MainActivity.this, QRScannerActivity.class); // Replace CurrentActivity with your actual activity name
+                startActivity(intent);
             }
         });
 

@@ -12,7 +12,7 @@
 
     <item
         android:id="@+id/nav_placeholder"
-        android:title=""
+        android:title="Scan"
         android:enabled="false" />
 
     <item

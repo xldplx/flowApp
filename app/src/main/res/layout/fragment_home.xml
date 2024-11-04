@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_color">
+    android:background="@android:color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -21,100 +21,207 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/card_gradient_background"
                 android:orientation="vertical"
-                android:padding="24dp">
+                android:padding="0dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
+
+
+                <FrameLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="flowApp"
-                    android:textColor="@android:color/white"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
+                    android:layout_marginTop="0dp"
+                    android:background="@drawable/card_gradient_background"
+                    android:elevation="0dp"
+                    android:padding="16dp">
 
-                <TextView
-                    android:id="@+id/balance"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="Rp 0.00"
-                    android:textColor="@android:color/white"
-                    android:textSize="32sp"
-                    android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:textAlignment="center"
+                        android:layout_height="wrap_content"
+                        android:text="Total balance"
+                        android:textColor="@color/white"
+                        android:textSize="16sp" />
 
+                    <TextView
+                        android:id="@+id/balance"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAlignment="center"
+                        android:text="Rp0.00"
+                        android:textColor="@android:color/white"
+                        android:textSize="32sp"
+                        android:textStyle="bold"
+                        android:layout_marginTop="24dp"/>
+                </FrameLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="16dp"
                     android:orientation="horizontal">
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btn_top_up"
+                    <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
                         android:layout_weight="1"
-                        android:text="Top up"
-                        android:textColor="@color/primary_color"
-                        app:backgroundTint="@android:color/white"
-                        app:cornerRadius="8dp" />
+                        android:gravity="center"
+                        android:orientation="vertical">
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btn_transfer"
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_send"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:insetLeft="0dp"
+                            android:insetTop="0dp"
+                            android:insetRight="0dp"
+                            android:insetBottom="0dp"
+                            android:padding="12dp"
+                            app:backgroundTint="@android:color/white"
+                            app:cornerRadius="24dp"
+                            app:icon="@drawable/pay"
+                            app:iconSize="24dp"
+                            app:iconGravity="textStart"
+                            app:iconPadding="0dp"
+                            app:iconTint="@color/primary_color"
+                            app:strokeColor="@color/primary_color" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="Pay"
+                            android:textColor="@color/text_primary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
                         android:layout_weight="1"
-                        android:text="Transfer"
-                        android:textColor="@color/primary_color"
-                        app:backgroundTint="@android:color/white"
-                        app:cornerRadius="8dp" />
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_request"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:insetLeft="0dp"
+                            android:insetTop="0dp"
+                            android:insetRight="0dp"
+                            android:insetBottom="0dp"
+                            android:padding="12dp"
+                            app:backgroundTint="@android:color/white"
+                            app:cornerRadius="24dp"
+                            app:icon="@drawable/receive"
+                            app:iconSize="24dp"
+                            app:iconGravity="textStart"
+                            app:iconPadding="0dp"
+                            app:iconTint="@color/primary_color"
+                            app:strokeColor="@color/primary_color" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="Request"
+                            android:textColor="@color/text_primary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_top_up"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:insetLeft="0dp"
+                            android:insetTop="0dp"
+                            android:insetRight="0dp"
+                            android:insetBottom="0dp"
+                            android:padding="12dp"
+                            app:backgroundTint="@android:color/white"
+                            app:cornerRadius="24dp"
+                            app:icon="@drawable/top_up"
+                            app:iconSize="24dp"
+                            app:iconGravity="textStart"
+                            app:iconPadding="0dp"
+                            app:iconTint="@color/primary_color"
+                            app:strokeColor="@color/primary_color" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="Top up"
+                            android:textColor="@color/text_primary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_more"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:insetLeft="0dp"
+                            android:insetTop="0dp"
+                            android:insetRight="0dp"
+                            android:insetBottom="0dp"
+                            android:padding="12dp"
+                            app:backgroundTint="@android:color/white"
+                            app:cornerRadius="24dp"
+                            app:icon="@drawable/more"
+                            app:iconSize="24dp"
+                            app:iconGravity="textStart"
+                            app:iconPadding="0dp"
+                            app:iconTint="@color/primary_color"
+                            app:strokeColor="@color/primary_color" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="More"
+                            android:textColor="@color/text_primary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
 
                 </LinearLayout>
-
             </LinearLayout>
-
         </androidx.cardview.widget.CardView>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:text="Quick Actions"
-            android:textColor="@color/text_primary"
-            android:textSize="20sp"
-            android:textStyle="bold" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/quick_actions_recycler"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:clipToPadding="false"
-            android:orientation="horizontal"
-            android:paddingStart="-8dp"
-            android:paddingEnd="-8dp"
-            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-            app:spanCount="4" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:layout_marginBottom="16dp"
-            android:text="Promotions"
+            android:text="Transaction History"
+            android:textAlignment="center"
             android:textColor="@color/text_primary"
             android:textSize="20sp"
             android:textStyle="bold" />
 
-        <androidx.viewpager2.widget.ViewPager2
-            android:id="@+id/promotions_viewpager"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/transaction_history_recycler"
             android:layout_width="match_parent"
-            android:layout_height="150dp"
+            android:layout_height="wrap_content"
             android:clipToPadding="false"
-            android:paddingStart="32dp"
-            android:paddingEnd="32dp" />
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
     </LinearLayout>
 
